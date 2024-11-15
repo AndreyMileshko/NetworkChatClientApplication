@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.logging.Level;
 
-import static ru.netology.ClientMain.logger;
+import static ru.netology.service.Client.logger;
 
 public class MessageReceiver implements Runnable {
     private volatile boolean isContinue = true;

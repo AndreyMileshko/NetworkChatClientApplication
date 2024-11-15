@@ -1,16 +1,20 @@
 package ru.netology.service;
 
+import ru.netology.ClientMain;
+
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.logging.Level;
-
-import static ru.netology.ClientMain.logger;
+import java.util.logging.Logger;
 
 public class Client {
     private static final String host = "localhost";
     private static final String SETTINGS_FILE_NAME = "src\\main\\java\\ru\\netology\\service\\settings.txt";
     private static int port;
     private static final int defaultPort = 8080;
+    private static final Scanner scanner = new Scanner(System.in);
+    public static final Logger logger = Logger.getLogger(ClientMain.class.getName());
 
     private Socket socket;
     private PrintWriter out;
@@ -26,6 +30,38 @@ public class Client {
             messageReceiver = new MessageReceiver(in);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Ошибка при подключении к серверу");
+        }
+    }
+
+    public void start() {
+        System.out.println(getServerMessage());
+        String clientName = scanner.nextLine();
+        sendMessage(clientName);
+
+        String greetingMessage = getServerMessage();
+        System.out.println(greetingMessage);
+
+        Thread receiveThread = new Thread(getMessageReceiver());
+        receiveThread.start();
+
+        String message;
+        while (true) {
+            message = scanner.nextLine();
+            sendMessage(message);
+
+            if (message.equalsIgnoreCase("/exit")) {
+                System.out.println("Вы покинули чат.");
+                break;
+            }
+        }
+        getMessageReceiver().stopReceiving();
+        try {
+            receiveThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.log(Level.WARNING, "Поток был прерван");
+        } finally {
+            closeResources();
         }
     }
 
